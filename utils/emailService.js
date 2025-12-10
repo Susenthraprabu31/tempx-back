@@ -24,12 +24,21 @@ const initializeTransporter = () => {
             return null;
         }
 
+        // Use explicit SMTP configuration for better compatibility with cloud hosting
         transporter = nodemailer.createTransport({
-            service: process.env.EMAIL_SERVICE || 'gmail',
+            host: process.env.EMAIL_HOST || 'smtp.gmail.com',
+            port: parseInt(process.env.EMAIL_PORT) || 587,
+            secure: false, // true for 465, false for other ports
             auth: {
                 user: emailUser,
                 pass: emailPassword
-            }
+            },
+            tls: {
+                rejectUnauthorized: false // Allow self-signed certificates
+            },
+            connectionTimeout: 10000, // 10 seconds
+            greetingTimeout: 10000,
+            socketTimeout: 10000
         });
 
         console.log('[Email Service] Transporter initialized successfully');
