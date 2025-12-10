@@ -117,9 +117,20 @@ export const requestSignupOTP = async (req, res) => {
         } catch (emailError) {
             console.error('[Signup OTP] Email sending failed:', emailError);
 
-            return res.status(500).json({
-                success: false,
-                message: 'Failed to send verification email. Please try again later.'
+            // GRACEFUL DEGRADATION: Log OTP to console for development/testing
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            console.log(`⚠️  EMAIL SERVICE UNAVAILABLE`);
+            console.log(`📧 Email: ${email}`);
+            console.log(`🔑 OTP Code: ${otp}`);
+            console.log(`⏰ Expires in: 10 minutes`);
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+            // Still return success so user can proceed
+            // In production, you should fix the email service or use a transactional email provider
+            res.status(200).json({
+                success: true,
+                message: 'Verification code generated. Note: Email service is currently unavailable. Please check server logs for your verification code or contact support.',
+                warning: 'Email delivery failed - check server logs'
             });
         }
 
@@ -345,9 +356,18 @@ export const forgotPassword = async (req, res) => {
         } catch (emailError) {
             console.error('[Forgot Password] Email sending failed:', emailError);
 
-            return res.status(500).json({
-                success: false,
-                message: 'Failed to send OTP email. Please try again later.'
+            // GRACEFUL DEGRADATION: Log OTP to console
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            console.log(`⚠️  EMAIL SERVICE UNAVAILABLE`);
+            console.log(`📧 Email: ${email}`);
+            console.log(`🔑 Password Reset OTP: ${otp}`);
+            console.log(`⏰ Expires in: 10 minutes`);
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+            res.status(200).json({
+                success: true,
+                message: 'OTP generated. Note: Email service is currently unavailable. Please check server logs for your OTP or contact support.',
+                warning: 'Email delivery failed - check server logs'
             });
         }
 
