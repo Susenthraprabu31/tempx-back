@@ -10,6 +10,7 @@ import emailRoutes from './routes/email.js';
 import newsletterRoutes from './routes/newsletter.js';
 import User from './models/User.js';
 
+
 // Initialize Express app
 const app = express();
 
@@ -22,10 +23,29 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // CORS configuration
-app.use(cors({
-    origin: config.frontend.url,
-    credentials: true
-}));
+
+
+// CORS configuration
+app.use(
+    cors({
+        origin: (origin, callback) => {
+            const allowedOrigins = [
+                config.frontend.url,           // https://www.tempmailx.site
+                "http://localhost:5173",       // optional for local development
+            ];
+
+            // Allow requests from allowed origins OR server-to-server (no origin)
+            if (!origin || allowedOrigins.includes(origin)) {
+                callback(null, true);
+            } else {
+                console.log("❌ Blocked by CORS:", origin);
+                callback(new Error("CORS Not Allowed"));
+            }
+        },
+        credentials: true,
+    })
+);
+
 
 // Session middleware (required for passport)
 app.use(session({
