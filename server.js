@@ -22,29 +22,38 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// CORS configuration
+// CORS configuration - Enhanced to handle preflight and credentials
+const corsOptions = {
+    origin: (origin, callback) => {
+        const allowedOrigins = [
+            config.frontend.url,                    // From env variable
+            "https://www.tempmailx.site",          // Production frontend (HTTPS)
+            "http://www.tempmailx.site",           // Production frontend (HTTP)
+            "https://tempmailx.site",              // Production without www
+            "http://tempmailx.site",               // Production without www (HTTP)
+            "http://localhost:5173",               // Local development
+            "http://localhost:3000",               // Alternative local port
+            "http://127.0.0.1:5173"                // Localhost IP
+        ];
 
+        // Allow requests from allowed origins OR server-to-server (no origin)
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            console.log("❌ Blocked by CORS:", origin);
+            console.log("Allowed origins:", allowedOrigins);
+            callback(null, false); // Don't throw error, just deny
+        }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    exposedHeaders: ['Content-Range', 'X-Content-Range'],
+    maxAge: 86400, // 24 hours
+    optionsSuccessStatus: 200
+};
 
-// CORS configuration
-app.use(
-    cors({
-        origin: (origin, callback) => {
-            const allowedOrigins = [
-                config.frontend.url,           // https://www.tempmailx.site
-                "http://localhost:5173",       // optional for local development
-            ];
-
-            // Allow requests from allowed origins OR server-to-server (no origin)
-            if (!origin || allowedOrigins.includes(origin)) {
-                callback(null, true);
-            } else {
-                console.log("❌ Blocked by CORS:", origin);
-                callback(new Error("CORS Not Allowed"));
-            }
-        },
-        credentials: true,
-    })
-);
+app.use(cors(corsOptions));
 
 
 // Session middleware (required for passport)
